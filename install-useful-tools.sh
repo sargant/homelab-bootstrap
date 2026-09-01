@@ -20,7 +20,7 @@ apt-get install -y \
   iputils-ping \
   dnsutils \
   lsof \
-  hx \
+  neovim \
   tmux \
   ripgrep \
   btop \
