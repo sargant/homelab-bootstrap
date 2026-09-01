@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TARGET=/etc/bash.bashrc
+source "$(dirname -- "${BASH_SOURCE[0]}")/common.sh"
 
-if [[ ${EUID} -ne 0 ]]; then
-    echo "This script must be run as root." >&2
-    exit 1
-fi
+TARGET=/etc/bash.bashrc
 
 if grep -q '^# homelab prompt$' "$TARGET"; then
     echo "Prompt already configured in $TARGET; refusing to modify it." >&2
