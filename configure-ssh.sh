@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# Bootstrap SSH access on a fresh Debian 13 host.
+# Installs OpenSSH/curl, pulls root authorized keys from GitHub,
+# and disables password/keyboard-interactive SSH authentication.
+# Root password login remains available on the local TTY.
+# Fails rather than overwriting an existing SSH hardening drop-in.
 set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
