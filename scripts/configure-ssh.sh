@@ -3,7 +3,7 @@ set -euo pipefail
 
 KEYS_URL="${KEYS_URL:-https://github.com/sargant.keys}"
 AUTHORIZED_KEYS="/root/.ssh/authorized_keys"
-SSHD_DROPIN="/etc/ssh/sshd_config.d/10-homelab-bootstrap.conf"
+SSHD_DROPIN="/etc/ssh/sshd_config.d/00-root-keys-only.conf"
 
 if [[ ${EUID} -ne 0 ]]; then
   echo "This script must be run as root." >&2
@@ -34,7 +34,7 @@ fi
 install -d -o root -g root -m 700 /root/.ssh
 install -o root -g root -m 600 "$keys_tmp" "$AUTHORIZED_KEYS"
 
-echo "Configuring root SSH login as key-only..."
+echo "Configuring SSH for key-only remote access..."
 install -d -o root -g root -m 755 /etc/ssh/sshd_config.d
 
 if [[ -f "$SSHD_DROPIN" ]]; then
@@ -43,9 +43,10 @@ if [[ -f "$SSHD_DROPIN" ]]; then
 fi
 
 cat >"$SSHD_DROPIN" <<'EOF'
-# Managed by homelab-bootstrap/scripts/configure-ssh.sh
-PubkeyAuthentication yes
 PermitRootLogin prohibit-password
+PubkeyAuthentication yes
+PasswordAuthentication no
+KbdInteractiveAuthentication no
 EOF
 chmod 644 "$SSHD_DROPIN"
 
@@ -61,4 +62,4 @@ fi
 
 systemctl reload ssh
 
-echo "Done. Root SSH login is key-only; local TTY password login is unchanged."
+echo "Done. SSH password authentication is disabled; local TTY password login is unchanged."
