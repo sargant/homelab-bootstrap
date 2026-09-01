@@ -10,19 +10,17 @@ if [[ ${EUID} -ne 0 ]]; then
   exit 1
 fi
 
-packages=()
-command -v curl >/dev/null 2>&1 || packages+=(curl)
-[[ -x /usr/sbin/sshd ]] || packages+=(openssh-server)
-
-if ((${#packages[@]})); then
-  apt-get update
-  DEBIAN_FRONTEND=noninteractive apt-get install -y "${packages[@]}"
+if [[ -e "$SSHD_DROPIN" ]]; then
+  echo "$SSHD_DROPIN already exists; refusing to overwrite it." >&2
+  exit 1
 fi
+
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y curl openssh-server
 
 echo "Installing root SSH keys from ${KEYS_URL}..."
 keys_tmp="$(mktemp)"
-dropin_backup=""
-trap 'rm -f "$keys_tmp" "$dropin_backup"' EXIT
+trap 'rm -f "$keys_tmp"' EXIT
 
 curl -fsSL "$KEYS_URL" -o "$keys_tmp"
 
@@ -37,11 +35,6 @@ install -o root -g root -m 600 "$keys_tmp" "$AUTHORIZED_KEYS"
 echo "Configuring SSH for key-only remote access..."
 install -d -o root -g root -m 755 /etc/ssh/sshd_config.d
 
-if [[ -f "$SSHD_DROPIN" ]]; then
-  dropin_backup="$(mktemp)"
-  cp -a "$SSHD_DROPIN" "$dropin_backup"
-fi
-
 cat >"$SSHD_DROPIN" <<'EOF'
 PermitRootLogin prohibit-password
 PubkeyAuthentication yes
@@ -51,12 +44,8 @@ EOF
 chmod 644 "$SSHD_DROPIN"
 
 if ! /usr/sbin/sshd -t; then
-  echo "sshd configuration validation failed; rolling back." >&2
-  if [[ -n "$dropin_backup" ]]; then
-    cp -a "$dropin_backup" "$SSHD_DROPIN"
-  else
-    rm -f "$SSHD_DROPIN"
-  fi
+  echo "sshd configuration validation failed; removing $SSHD_DROPIN." >&2
+  rm -f "$SSHD_DROPIN"
   exit 1
 fi
 
