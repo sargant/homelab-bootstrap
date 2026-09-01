@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export DEBIAN_FRONTEND=noninteractive
+
 KEYS_URL="${KEYS_URL:-https://github.com/sargant.keys}"
 AUTHORIZED_KEYS="/root/.ssh/authorized_keys"
 SSHD_DROPIN="/etc/ssh/sshd_config.d/00-root-keys-only.conf"
@@ -16,7 +18,7 @@ if [[ -e "$SSHD_DROPIN" ]]; then
 fi
 
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y curl openssh-server
+apt-get install -y curl openssh-server
 
 echo "Installing root SSH keys from ${KEYS_URL}..."
 keys_tmp="$(mktemp)"
