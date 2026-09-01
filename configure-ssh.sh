@@ -3,6 +3,18 @@ set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 
+if [[ ! -r /etc/os-release ]]; then
+  echo "Cannot determine operating system; /etc/os-release is missing." >&2
+  exit 1
+fi
+
+. /etc/os-release
+
+if [[ "${ID:-}" != "debian" || "${VERSION_ID:-}" != "13" ]]; then
+  echo "This script requires Debian 13; detected ${PRETTY_NAME:-unknown}." >&2
+  exit 1
+fi
+
 KEYS_URL="${KEYS_URL:-https://github.com/sargant.keys}"
 AUTHORIZED_KEYS="/root/.ssh/authorized_keys"
 SSHD_DROPIN="/etc/ssh/sshd_config.d/00-root-keys-only.conf"
