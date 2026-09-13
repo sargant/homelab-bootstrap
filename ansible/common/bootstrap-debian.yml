@@ -24,9 +24,9 @@
 - name: Check hostname
   ansible.builtin.assert:
     that:
-      - ansible_hostname == system_hostname
+      - ansible_facts["hostname"] == system_hostname
     fail_msg: >-
-      Expected host {{ system_hostname }}, found {{ ansible_hostname }}.
+      Expected host {{ system_hostname }}, found {{ ansible_facts["hostname"] }}.
   when: system_hostname is defined
 
 - name: Sync GitHub SSH keys
