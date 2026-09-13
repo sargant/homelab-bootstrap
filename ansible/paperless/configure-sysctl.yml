@@ -1,11 +1,12 @@
 ---
 - name: Install Paperless kernel settings
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/99-paperless.conf"
     dest: /etc/sysctl.d/99-paperless.conf
     owner: root
     group: root
     mode: "0644"
+    content: |
+      vm.overcommit_memory = 1
   register: paperless_sysctl_config
 
 - name: Read memory overcommit setting
