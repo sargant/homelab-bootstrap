@@ -28,7 +28,7 @@
     - paperless_sysctl_config.changed or paperless_overcommit_memory.stdout | trim != '1'
   changed_when: true
 
-- name: Verify memory overcommit setting
+- name: Read applied memory overcommit setting
   ansible.builtin.command:
     argv:
       - sysctl
