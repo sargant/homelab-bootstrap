@@ -1,44 +1,9 @@
 ---
-- name: Install Paperless kernel settings
-  ansible.builtin.copy:
-    dest: /etc/sysctl.d/99-paperless.conf
-    owner: root
-    group: root
-    mode: "0644"
-    content: |
-      vm.overcommit_memory = 1
-  register: paperless_sysctl_config
-
-- name: Read memory overcommit setting
-  ansible.builtin.command:
-    argv:
-      - sysctl
-      - -n
-      - vm.overcommit_memory
-  register: paperless_overcommit_memory
-  changed_when: false
-
-- name: Apply Paperless kernel settings
-  ansible.builtin.command:
-    argv:
-      - sysctl
-      - -p
-      - /etc/sysctl.d/99-paperless.conf
-  when:
-    - paperless_sysctl_config.changed or paperless_overcommit_memory.stdout | trim != '1'
-  changed_when: true
-
-- name: Read applied memory overcommit setting
-  ansible.builtin.command:
-    argv:
-      - sysctl
-      - -n
-      - vm.overcommit_memory
-  register: paperless_overcommit_memory_check
-  changed_when: false
-
-- name: Check memory overcommit setting
-  ansible.builtin.assert:
-    that:
-      - paperless_overcommit_memory_check.stdout | trim == '1'
-    fail_msg: vm.overcommit_memory is not set to 1.
+- name: Set Paperless memory overcommit
+  ansible.posix.sysctl:
+    name: vm.overcommit_memory
+    value: "1"
+    state: present
+    sysctl_set: true
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-paperless.conf
