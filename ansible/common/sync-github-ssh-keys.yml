@@ -1,0 +1,32 @@
+---
+- name: Ensure root SSH directory exists
+  ansible.builtin.file:
+    path: /root/.ssh
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Fetch GitHub SSH keys
+  ansible.builtin.uri:
+    url: https://github.com/sargant.keys
+    return_content: true
+    status_code: 200
+  register: github_ssh_keys
+  changed_when: false
+
+- name: Require at least one GitHub SSH key
+  ansible.builtin.assert:
+    that:
+      - github_ssh_keys.content | trim | length > 0
+    fail_msg: GitHub returned no SSH keys for sargant.
+
+- name: Trust GitHub SSH keys for root
+  ansible.builtin.blockinfile:
+    path: /root/.ssh/authorized_keys
+    create: true
+    owner: root
+    group: root
+    mode: "0600"
+    marker: "# {mark} ANSIBLE MANAGED GITHUB SSH KEYS"
+    block: "{{ github_ssh_keys.content | trim }}"

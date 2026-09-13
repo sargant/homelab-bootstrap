@@ -1,0 +1,9 @@
+---
+- name: Set Paperless memory overcommit
+  ansible.posix.sysctl:
+    name: vm.overcommit_memory
+    value: "1"
+    state: present
+    sysctl_set: true
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-paperless.conf

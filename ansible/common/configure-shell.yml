@@ -1,0 +1,25 @@
+---
+- name: Install interactive shell support
+  ansible.builtin.apt:
+    name: bash-completion
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Suppress root login banner
+  ansible.builtin.file:
+    path: /root/.hushlogin
+    state: touch
+    owner: root
+    group: root
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
+
+- name: Configure homelab interactive shell
+  ansible.builtin.blockinfile:
+    path: /etc/bash.bashrc
+    marker: "# {mark} homelab prompt {mark}"
+    marker_begin: ">>>"
+    marker_end: "<<<"
+    block: "{{ lookup('ansible.builtin.file', common_dir ~ '/homelab-bashrc') }}"

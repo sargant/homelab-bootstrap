@@ -1,0 +1,49 @@
+---
+- name: Check Samba configuration
+  ansible.builtin.assert:
+    that:
+      - samba_config_source is defined
+      - samba_config_source | trim | length > 0
+    fail_msg: samba_config_source must be defined.
+
+- name: Install Samba
+  ansible.builtin.apt:
+    name: samba
+    state: present
+
+- name: Configure Samba
+  ansible.builtin.template:
+    src: "{{ samba_config_source }}"
+    dest: /etc/samba/smb.conf
+    owner: root
+    group: root
+    mode: "0644"
+  register: samba_config
+
+- name: Validate Samba configuration
+  ansible.builtin.command:
+    argv:
+      - testparm
+      - -s
+  changed_when: false
+
+- name: Enable and start Samba
+  ansible.builtin.service:
+    name: smbd
+    enabled: true
+    state: "{{ 'restarted' if samba_config.changed else 'started' }}"
+
+- name: Verify Samba is running
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - is-active
+      - smbd
+  register: samba_service_check
+  changed_when: false
+
+- name: Check Samba service
+  ansible.builtin.assert:
+    that:
+      - samba_service_check.stdout | trim == 'active'
+    fail_msg: Samba is not active.

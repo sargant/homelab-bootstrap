@@ -26,4 +26,4 @@ tailscale:
 # Configure the Paperless host after verifying its infrastructure is converged.
 paperless:
   tofu -chdir=infra plan -target=proxmox_virtual_environment_vm.paperless -detailed-exitcode -compact-warnings
-  ansible-playbook ansible/paperless.yml
+  ansible-playbook ansible/paperless/main.yml

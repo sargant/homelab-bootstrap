@@ -24,13 +24,16 @@
 - name: Check hostname
   ansible.builtin.assert:
     that:
-      - ansible_hostname == system_hostname
+      - ansible_facts["hostname"] == system_hostname
     fail_msg: >-
-      Expected host {{ system_hostname }}, found {{ ansible_hostname }}.
+      Expected host {{ system_hostname }}, found {{ ansible_facts["hostname"] }}.
   when: system_hostname is defined
 
-- name: Configure SSH
-  ansible.builtin.import_tasks: configure-ssh.yml
+- name: Sync GitHub SSH keys
+  ansible.builtin.import_tasks: sync-github-ssh-keys.yml
+
+- name: Configure SSH authentication
+  ansible.builtin.import_tasks: configure-ssh-auth.yml
 
 - name: Configure shell
   ansible.builtin.import_tasks: configure-shell.yml

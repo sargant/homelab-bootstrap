@@ -1,0 +1,80 @@
+---
+- name: Check Docker Compose configuration
+  ansible.builtin.assert:
+    that:
+      - compose_source is defined
+      - compose_source | trim | length > 0
+      - compose_path is defined
+      - compose_path | trim | length > 0
+      - compose_expected_services is defined
+      - compose_expected_services | length > 0
+    fail_msg: compose_source, compose_path, and compose_expected_services must be defined.
+
+- name: Install Docker Compose definition
+  ansible.builtin.copy:
+    src: "{{ compose_source }}"
+    dest: "{{ compose_path }}/compose.yml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Validate Docker Compose definition
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - config
+      - --quiet
+  args:
+    chdir: "{{ compose_path }}"
+  changed_when: false
+
+- name: Pull Docker Compose images
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - pull
+  args:
+    chdir: "{{ compose_path }}"
+  changed_when: false
+
+- name: Start Docker Compose services
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - up
+      - -d
+  args:
+    chdir: "{{ compose_path }}"
+  register: compose_up
+  changed_when: >-
+    'Created' in compose_up.stdout or
+    'Created' in compose_up.stderr or
+    'Recreated' in compose_up.stdout or
+    'Recreated' in compose_up.stderr or
+    'Started' in compose_up.stdout or
+    'Started' in compose_up.stderr
+
+- name: Read running Docker Compose services
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - ps
+      - --status
+      - running
+      - --services
+  args:
+    chdir: "{{ compose_path }}"
+  register: compose_running_services
+  changed_when: false
+
+- name: Check Docker Compose services
+  ansible.builtin.assert:
+    that:
+      - compose_running_services.stdout_lines | sort == compose_expected_services | sort
+    fail_msg: >-
+      Expected {{ compose_expected_services | join(', ') }} to be running; found
+      {{ compose_running_services.stdout_lines | join(', ') }}.
