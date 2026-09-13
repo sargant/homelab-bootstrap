@@ -2,6 +2,7 @@ all:
   vars:
     ansible_user: root
     ansible_ssh_private_key_file: /root/.ssh/vm-management
+    ansible_python_interpreter: /usr/bin/python3
     lan_subnet: 192.168.37.0/24
     common_dir: "{{ inventory_dir }}/common"
 
