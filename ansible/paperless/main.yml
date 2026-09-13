@@ -14,37 +14,23 @@
 
   pre_tasks:
     - name: Trust SSH host key
-      ansible.builtin.import_tasks: "{{ common_dir }}/trust-host.yml"
+      ansible.builtin.include_tasks: "{{ common_dir }}/trust-host.yml"
 
     - name: Bootstrap Debian
-      ansible.builtin.import_tasks: "{{ common_dir }}/bootstrap-debian.yml"
+      ansible.builtin.include_tasks: "{{ common_dir }}/bootstrap-debian.yml"
 
   tasks:
     - name: Install Docker
-      ansible.builtin.import_tasks: "{{ common_dir }}/install-docker.yml"
+      ansible.builtin.include_tasks: "{{ common_dir }}/install-docker.yml"
 
     - name: Configure Paperless backup NFS mount
-      ansible.builtin.import_tasks: "{{ common_dir }}/configure-nfs-mount.yml"
+      ansible.builtin.include_tasks: "{{ common_dir }}/configure-nfs-mount.yml"
       vars:
         nfs_source: "{{ paperless_backup_source }}"
         nfs_mountpoint: "{{ paperless_backup_mount }}"
 
-    - name: Install Paperless kernel settings
-      ansible.builtin.copy:
-        src: 99-paperless.conf
-        dest: /etc/sysctl.d/99-paperless.conf
-        owner: root
-        group: root
-        mode: "0644"
-      register: paperless_sysctl_config
-
-    - name: Apply Paperless kernel settings
-      ansible.builtin.command:
-        argv:
-          - sysctl
-          - -p
-          - /etc/sysctl.d/99-paperless.conf
-      when: paperless_sysctl_config.changed
+    - name: Configure Paperless kernel settings
+      ansible.builtin.include_tasks: configure-sysctl.yml
 
     - name: Create Paperless consume directory
       ansible.builtin.file:
@@ -101,12 +87,12 @@
         mode: "0600"
 
     - name: Configure Paperless Samba inbox
-      ansible.builtin.import_tasks: "{{ common_dir }}/configure-samba-host.yml"
+      ansible.builtin.include_tasks: "{{ common_dir }}/configure-samba-host.yml"
       vars:
         samba_config_source: "{{ playbook_dir }}/smb.conf.j2"
 
     - name: Configure Paperless Docker Compose services
-      ansible.builtin.import_tasks: "{{ common_dir }}/configure-docker-compose.yml"
+      ansible.builtin.include_tasks: "{{ common_dir }}/configure-docker-compose.yml"
       vars:
         compose_source: "{{ playbook_dir }}/compose.yml"
         compose_path: "{{ paperless_install_path }}"
