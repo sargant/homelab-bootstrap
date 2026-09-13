@@ -5,8 +5,7 @@
 
   vars:
     paperless_install_path: /opt/paperless
-    paperless_secrets_path: "{{ paperless_install_path }}/secrets"
-    paperless_secret_key_path: "{{ paperless_secrets_path }}/paperless_secret_key"
+    paperless_secret_key_path: "{{ paperless_install_path }}/secrets/paperless_secret_key"
 
   pre_tasks:
     - name: Trust SSH host key
@@ -46,7 +45,7 @@
 
     - name: Create Paperless secrets directory
       ansible.builtin.file:
-        path: "{{ paperless_secrets_path }}"
+        path: "{{ paperless_secret_key_path | dirname }}"
         state: directory
         owner: root
         group: root
