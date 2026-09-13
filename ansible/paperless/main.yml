@@ -4,11 +4,7 @@
   gather_facts: false
 
   vars:
-    paperless_backup_source: "{{ hostvars['nas'].ansible_host }}:/volume1/backup/paperless"
-    paperless_backup_mount: /mnt/backup
     paperless_install_path: /opt/paperless
-    paperless_consume_path: "{{ paperless_install_path }}/consume"
-    paperless_export_path: "{{ paperless_install_path }}/export"
     paperless_secrets_path: "{{ paperless_install_path }}/secrets"
     paperless_secret_key_path: "{{ paperless_secrets_path }}/paperless_secret_key"
 
@@ -26,15 +22,15 @@
     - name: Configure Paperless backup NFS mount
       ansible.builtin.include_tasks: "{{ common_dir }}/configure-nfs-mount.yml"
       vars:
-        nfs_source: "{{ paperless_backup_source }}"
-        nfs_mountpoint: "{{ paperless_backup_mount }}"
+        nfs_source: "{{ hostvars['nas'].ansible_host }}:/volume1/backup/paperless"
+        nfs_mountpoint: /mnt/backup
 
     - name: Configure Paperless kernel settings
       ansible.builtin.include_tasks: configure-sysctl.yml
 
     - name: Create Paperless consume directory
       ansible.builtin.file:
-        path: "{{ paperless_consume_path }}"
+        path: "{{ paperless_install_path }}/consume"
         state: directory
         owner: "1000"
         group: "1000"
@@ -42,7 +38,7 @@
 
     - name: Create Paperless export directory
       ansible.builtin.file:
-        path: "{{ paperless_export_path }}"
+        path: "{{ paperless_install_path }}/export"
         state: directory
         owner: "1000"
         group: "1000"
