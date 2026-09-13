@@ -24,8 +24,14 @@
         nfs_source: "{{ hostvars['nas'].ansible_host }}:/volume1/backup/paperless"
         nfs_mountpoint: /mnt/backup
 
-    - name: Configure Paperless kernel settings
-      ansible.builtin.include_tasks: configure-sysctl.yml
+    - name: Set Paperless memory overcommit
+      ansible.posix.sysctl:
+        name: vm.overcommit_memory
+        value: "1"
+        state: present
+        sysctl_set: true
+        reload: true
+        sysctl_file: /etc/sysctl.d/99-paperless.conf
 
     - name: Create Paperless consume directory
       ansible.builtin.file:
